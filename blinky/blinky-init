@@ -1,0 +1,14 @@
+#!/bin/bash
+case "$1" in
+    start)
+        /usr/bin/blinky &
+        ;;
+    stop)
+        exit 1
+        ;;
+    *)
+        exit 1
+        ;;
+esac
+
+exit 0

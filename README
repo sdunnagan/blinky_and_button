@@ -1,0 +1,29 @@
+This is a project for Buildroot and RPi 4 for blinking an LED with libgpiod,
+and detecting button presses and toggling a button LED.
+
+blinky uses libgpiod to blink an LED on GPIO 18.
+
+gpio_button is a platform driver that uses a device tree overlay to map:
+- GPIO 24: Button input (active-low, with hardware pull-up)
+- GPIO 25: LED output (button status indicator)
+
+Driver Features:
+1. Debounced button handling:
+   - Interrupt Service Routine (ISR) triggers on falling edge (button press).
+   - 50ms software debounce timer ensures single event registration per press.
+   - Debounce timer re-checks button state before signaling userspace.
+
+2. Userspace event notification:
+  - Blocking read() via wait queue: Userspace processes sleep until button events.
+  - Atomic flag (button_event_flag) ensures safe cross-context synchronization.
+  - Poll support for multiplexed I/O applications.
+
+3. sysfs:
+   - Exposes /sys/class/gpio_button/gpio_button_sysfs/led_status for LED control.
+   - Accepts 0 (OFF) or 1 (ON) via ASCII input.
+
+Flow:
+- Button press -> ISR schedules debounce timer (atomic lock prevents retriggering).
+- After 50ms: Timer callback verifies stable LOW state -> sets button_event_flag.
+- wait_queue (button_wait) wakes blocked userspace readers.
+- read() returns '1' (ASCII) and clears flag → LED toggled via SysFS.

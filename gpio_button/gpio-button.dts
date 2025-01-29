@@ -1,0 +1,30 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2711";
+
+    fragment@0 {
+        target = <&gpio>;
+        __overlay__ {
+            button_led_pins: button_led_pins {
+                brcm,pins = <24 25>;
+                brcm,function = <0 1>; /* Input, Output */
+                brcm,pull = <1 0>;     /* Pull-down, No pull */
+            };
+        };
+    };
+
+    fragment@1 {
+        target-path = "/";
+        __overlay__ {
+            button_led {
+                compatible = "custom,gpio-button";
+                pinctrl-names = "default";
+                pinctrl-0 = <&button_led_pins>;
+                button-gpios = <&gpio 24 0>;
+                led-gpios = <&gpio 25 0>;
+            };
+        };
+    };
+};
